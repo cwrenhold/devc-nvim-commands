@@ -14,6 +14,8 @@ To use this script, you will need to have the following:
 
 To use this script, you will need to have the `devc-nvim` script in your path. You can do this by adding the directory containing the script to your path, or by copying the script to a directory which is already in your path. For example, you could clone this repository and then add that directory to your path, and then either copy the `devc-nvim` script to `/usr/local/bin` or create a symlink to it from there.
 
+As this is an executable script, you may need to make it executable with `chmod +x devc-nvim` if it isn't already.
+
 # Usage
 
 To use this, you need to be in a directory which contains a devcontainer configuration. There are a few ways to use this script in such a location:
