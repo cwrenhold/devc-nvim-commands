@@ -38,34 +38,66 @@ config_nvim() {
 	echo -e "\n--- Copied the neovim configuration to the container\n"
 }
 
+run_commands() {
+	# Create an array of commands to execute
+	commands=("$@")
+
+	# Build a commandString from the array with newlines
+	command_string=$(printf "%s\n" "${commands[@]}")
+
+	# Execute the commands
+	devcontainer exec --workspace-folder ./ sh -c "$command_string"
+}
+
 install() {
 	echo -e "\n--- Installing neovim\n"
-	devcontainer exec --workspace-folder ./ sh -c '
-		cd ~
-		curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-		sudo rm -rf /opt/nvim
-		sudo tar xzf ~/nvim-linux64.tar.gz -C /opt
-		'
+
+	commands=(
+		"cd ~"
+		"curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+		"sudo rm -rf /opt/nvim"
+		"sudo tar xzf ~/nvim-linux64.tar.gz -C /opt"
+	)
+
+	run_commands "${commands[@]}"
+
 	echo -e "\n--- Installed neovim\n"
 }
 
 install_nightly() {
 	echo -e "\n--- Installing neovim\n"
-	devcontainer exec --workspace-folder ./ sh -c '
-		cd ~
-		curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz
-		sudo rm -rf /opt/nvim
-		sudo tar xzf ~/nvim-linux64.tar.gz -C /opt
-		'
+
+	commands=(
+		"cd ~"
+		"curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz"
+		"sudo rm -rf /opt/nvim"
+		"sudo tar xzf ~/nvim-linux64.tar.gz -C /opt"
+	)
+
+	run_commands "${commands[@]}"
+
 	echo -e "\n--- Installed neovim\n"
 }
 
 install_dependencies() {
 	echo -e "\n--- Installing dependencies\n"
-	devcontainer exec --workspace-folder ./ sh -c '
-		sudo apt-get update
-		sudo apt-get install -y curl ripgrep
-		'
+
+	# List of packages to install with apt-get
+	packages=(
+		"curl"    # For downloading neovim
+		"ripgrep" # For fzf
+		"nodejs"  # For additional tooling (e.g. Copilot)
+	)
+
+	package_string=$(printf "%s " "${packages[@]}")
+
+	commands=(
+		"sudo apt-get update"
+		"sudo apt-get install -y $package_string"
+	)
+
+	run_commands "${commands[@]}"
+
 	echo -e "\n--- Installed dependencies\n"
 }
 
