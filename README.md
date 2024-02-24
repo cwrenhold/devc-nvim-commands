@@ -45,3 +45,7 @@ If no command is provided, the script will default to starting neovim in the con
 
 This script is very simple and does not handle any complex cases. Due to this, it assumes that your configuration is in the standard location (`~/.config/nvim`) and that we don't need to worry about sharing state or anything like that.
 
+# Known issues
+
+This script currently relies on the dev container CLI connecting to the container and the container reporting its container ID using its `hostname`. This is not a reliable way to get the container ID, and so this script may fail in some cases. An example of where this is the case if the container is linked to another container in a docker compose configuration using a `network_mode` of `service:container_name` or similar.
+
