@@ -4,6 +4,12 @@
 DEVCONTAINER_ID=$(devcontainer exec --workspace-folder ./ cat /etc/hostname)
 DEVCONTAINER_HOME=$(devcontainer exec --workspace-folder ./ sh -c 'echo $HOME')
 
+# If any of the standard variables aren't set, exit with a message
+if [ -z "$DEVCONTAINER_ID" ] || [ -z "$DEVCONTAINER_HOME" ]; then
+	echo "Failed to get the devcontainer ID or home directory, please ensure you are in a directory with a devcontainer"
+	exit 1
+fi
+
 start_nvim() {
 	# Start un neovim in the container
 	devcontainer exec --workspace-folder ./ /opt/nvim-linux64/bin/nvim .
@@ -67,9 +73,6 @@ case $MODE in
 	"clean")
 		clean_nvim
 		;;
-	"setup")
-		setup_nvim
-		;;
 	"install")
 		install
 		;;
@@ -79,15 +82,32 @@ case $MODE in
 	"install-dependencies"|"install-deps")
 		install_dependencies
 		;;
+	"setup")
+		setup_nvim
+		;;
+	"setup-all")
+		clean_nvim
+		install_dependencies
+		install
+		setup_nvim
+		;;
+	"setup-all-nightly")
+		clean_nvim
+		install_dependencies
+		install_nightly
+		setup_nvim
+		;;
 	"help")
 		# Display the help message, using the name of the script in the message
 		echo "Usage: $(basename $0) [mode]"
 		echo "  nvim: Start neovim inside the container"
 		echo "  clean: Remove the existing neovim configuration"
-		echo "  setup: Copy the neovim configuration to the container"
 		echo "  install: Install the latest stable version of neovim"
 		echo "  install-nightly: Install the latest nightly version of neovim"
 		echo "  install-dependencies or install-deps: Install the dependencies for neovim"
+		echo "  setup: Copy the neovim configuration to the container"
+		echo "  setup-all: Sets up neovim from scratch, running through clean, install, and setup"
+		echo "  setup-all-nightly: Sets up neovim from scratch with a nightly installation, running through clean, install-nightly, and setup"
 		echo "  help: Display this help message"
 		;;
 	*)

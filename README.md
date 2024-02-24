@@ -25,6 +25,9 @@ To use this, you need to be in a directory which contains a devcontainer configu
 - `devc-nvim install` - This will install neovim in the container
 - `devc-nvim install-nightly` - This will install the nightly version of neovim in the container
 - `devc-nvim install-dependencies` or `devc-nvim install-deps` - This will install the dependencies for neovim in the container
+- `devc-nvim setup` - This will copy your local neovim configuration into the container
+- `devc-nvim setup-all` - This will install neovim in the container, install the dependencies, and copy your local neovim configuration into the container
+- `devc-nvim setup-all-nightly` - This will install the nightly version of neovim in the container, install the dependencies, and copy your local neovim configuration into the container
 - `devc-nvim help` - This will display the help message, including the available commands
 
 If no command is provided, the script will default to starting neovim in the container.
