@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Set up the standard variables
+DEVCONTAINER_ID=$(devcontainer exec --workspace-folder ./ cat /etc/hostname)
+DEVCONTAINER_HOME=$(devcontainer exec --workspace-folder ./ sh -c 'echo $HOME')
+
+start_nvim() {
+	# Start un neovim in the container
+	devcontainer exec --workspace-folder ./ /opt/nvim-linux64/bin/nvim .
+}
+
+clean_nvim() {
+	# Remove the existing configuration
+	devcontainer exec --workspace-folder ./ rm -rf $DEVCONTAINER_HOME/.config/nvim
+	echo "Removed the existing neovim configuration"
+}
+
+setup_nvim() {
+	# Set up the neovim configuration
+	devcontainer exec --workspace-folder ./ mkdir -p $DEVCONTAINER_HOME/.config
+	docker cp ~/.config/nvim $DEVCONTAINER_ID:$DEVCONTAINER_HOME/.config
+	echo "Copied the neovim configuration to the container"
+}
+
+install() {
+	devcontainer exec --workspace-folder ./ sh -c '
+		echo "Installing neovim"
+		cd ~
+		curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+		sudo rm -rf /opt/nvim
+		sudo tar xzf ~/nvim-linux64.tar.gz -C /opt
+		'
+	echo "Installed neovim"
+}
+
+install_nightly() {
+	devcontainer exec --workspace-folder ./ sh -c '
+		echo "Installing neovim"
+		cd ~
+		curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz
+		sudo rm -rf /opt/nvim
+		sudo tar xzf ~/nvim-linux64.tar.gz -C /opt
+		'
+	echo "Installed neovim"
+}
+
+install_dependencies() {
+	devcontainer exec --workspace-folder ./ sh -c '
+		echo "Installing dependencies"
+		sudo apt-get update
+		sudo apt-get install -y curl ripgrep
+		'
+	echo "Installed dependencies"
+}
+
+MODE="nvim"
+
+# If an argument is provided, use it as the mode
+if [ $# -eq 1 ]; then
+	MODE=$1
+fi
+
+case $MODE in 
+	"nvim")
+		start_nvim
+		;;
+	"clean")
+		clean_nvim
+		;;
+	"setup")
+		setup_nvim
+		;;
+	"install")
+		install
+		;;
+	"install-nightly")
+		install_nightly
+		;;
+	"install-dependencies"|"install-deps")
+		install_dependencies
+		;;
+	"help")
+		# Display the help message, using the name of the script in the message
+		echo "Usage: $(basename $0) [mode]"
+		echo "  nvim: Start neovim inside the container"
+		echo "  clean: Remove the existing neovim configuration"
+		echo "  setup: Copy the neovim configuration to the container"
+		echo "  install: Install the latest stable version of neovim"
+		echo "  install-nightly: Install the latest nightly version of neovim"
+		echo "  install-dependencies or install-deps: Install the dependencies for neovim"
+		echo "  help: Display this help message"
+		;;
+	*)
+		echo "Invalid mode: $mode"
+		;;
+esac
+
