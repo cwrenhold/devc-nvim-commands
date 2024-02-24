@@ -18,14 +18,23 @@ As this is an executable script, you may need to make it executable with `chmod 
 
 # Usage
 
-To use this, you need to be in a directory which contains a devcontainer configuration. There are a few ways to use this script in such a location:
+To use this, you need to be in a directory which contains a devcontainer configuration. This script comes with several options:
 
-- `devc-nvim nvim` - This will start up neovim in the container from the workspace root
+## Launching applications
+
+- `devc-nvim` - This will start up neovim in the container from the workspace root
+- `devc-nvim nvim` - This will start up neovim in the container from the workspace root (this is the equivalent of the previous command)
+- `devc-nvim shell` or `devc-nvim sh` - This will start up a shell in the container from the workspace root
+- `devc-nvim bash` - This will start up a bash shell in the container from the workspace root
+
+## Other commands
+
 - `devc-nvim clean` - This will remove any existing neovim configuration in the container
+- `devc-nvim config` - This will copy your local neovim configuration into the container
+- `devc-nvim info` or `devc-nvim show-info` - This will display information about the container
 - `devc-nvim install` - This will install neovim in the container
 - `devc-nvim install-nightly` - This will install the nightly version of neovim in the container
 - `devc-nvim install-dependencies` or `devc-nvim install-deps` - This will install the dependencies for neovim in the container
-- `devc-nvim setup` - This will copy your local neovim configuration into the container
 - `devc-nvim setup-all` - This will install neovim in the container, install the dependencies, and copy your local neovim configuration into the container
 - `devc-nvim setup-all-nightly` - This will install the nightly version of neovim in the container, install the dependencies, and copy your local neovim configuration into the container
 - `devc-nvim help` - This will display the help message, including the available commands
