@@ -152,11 +152,17 @@ install() {
     echo -e "\n--- Installing neovim\n"
 
     commands=(
+        # Create a temporary directory to download the neovim tarball
         "mkdir -p /tmp/nvim-install"
         "cd /tmp/nvim-install"
         "curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
         "sudo rm -rf /opt/nvim"
         "sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
+
+        # Create a symlink to the neovim binary, replacing any existing symlink so that it can be run from a shell
+        "mkdir -p /usr/local/bin"
+        "sudo rm -f /usr/local/bin/nvim"
+        "sudo ln -s /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim"
     )
 
     run_commands "${commands[@]}"
@@ -168,11 +174,17 @@ install_nightly() {
     echo -e "\n--- Installing neovim\n"
 
     commands=(
+        # Create a temporary directory to download the neovim tarball
         "mkdir -p /tmp/nvim-install"
         "cd /tmp/nvim-install"
         "curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz"
         "sudo rm -rf /opt/nvim"
         "sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
+
+        # Create a symlink to the neovim binary, replacing any existing symlink so that it can be run from a shell
+        "mkdir -p /usr/local/bin"
+        "sudo rm -f /usr/local/bin/nvim"
+        "sudo ln -s /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim"
     )
 
     run_commands "${commands[@]}"
