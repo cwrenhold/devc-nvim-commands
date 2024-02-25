@@ -10,35 +10,41 @@ if [[ $1 != "-"* && $1 != "--" && $1 != "" ]]; then
 fi
 
 help() {
-	echo -e "\nUsage: $(basename $0) [mode]"
-	echo "  Applications:"
-	echo "    nvim: Start neovim inside the container"
-	echo "    shell or sh: Start a shell inside the container"
-	echo "    bash: Start a bash shell inside the container"
-	echo "  Commands:"
-	echo "    clean: Remove the existing neovim configuration"
-	echo "    config: Copy the neovim configuration to the container"
-	echo "    info or show-info: Display information about the devcontainer"
-	echo "    install: Install the latest stable version of neovim"
-	echo "    install-nightly: Install the latest nightly version of neovim"
-	echo "    install-dependencies or install-deps: Install the dependencies for neovim"
-	echo "    setup: Sets up neovim from scratch, running through clean, install, and setup"
-	echo "    setup-nightly: Sets up neovim from scratch with a nightly installation, running through clean, install-nightly, and setup"
-	echo "    help: Display this help message"
-	echo "  Options:"
-	echo "    -p, --path: The path to the devcontainer (default: ./)"
-	echo "    -i, --id: The ID of the devcontainer (default: auto-detected)"
-	echo ""
-	echo "  Examples:"
-	echo "    $(basename $0)"
-	echo "       - Start neovim inside the default container"
-	echo "    $(basename $0) shell"
-	echo "       - Start a shell inside the default container"
-	echo "    $(basename $0) clean -p .."
-	echo "       - Remove the existing neovim configuration from the default container found from the parent directory"
-	echo "    $(basename $0) config -i 12345"
-	echo "       - Copy the neovim configuration to the container with the ID 12345"
-	echo ""
+	HELP_TEXT=$(cat <<EOF
+Usage: $(basename $0) [mode]
+
+  Applications:
+    nvim: Start neovim inside the container
+    shell or sh: Start a shell inside the container
+    bash: Start a bash shell inside the container
+  Commands:
+    clean: Remove the existing neovim configuration
+    config: Copy the neovim configuration to the container
+    info or show-info: Display information about the devcontainer
+    install: Install the latest stable version of neovim
+    install-nightly: Install the latest nightly version of neovim
+    install-dependencies or install-deps: Install the dependencies for neovim
+    setup: Sets up neovim from scratch, running through clean, install, and setup
+    setup-nightly: Sets up neovim from scratch with a nightly installation, running through clean, install-nightly, and setup
+    help: Display this help message
+
+  Options:
+    -p or --path: The path to the devcontainer (default: ./)
+    -i or --id: The ID of the devcontainer (default: auto-detected)
+    
+  Examples:
+    $(basename $0)
+      - Start neovim inside the default container
+    $(basename $0) shell
+      - Start a shell inside the default container
+    $(basename $0) clean -p ..
+      - Remove the existing neovim configuration from the default container found from the parent directory
+    $(basename $0) config -i 12345
+      - Copy the neovim configuration to the container with the ID 12345
+EOF
+	)
+
+	echo -e "$HELP_TEXT"
 }
 
 # Define the options available in both forms
