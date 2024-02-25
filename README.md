@@ -18,7 +18,7 @@ As this is an executable script, you may need to make it executable with `chmod 
 
 # Usage
 
-To use this, you need to be in a directory which contains a devcontainer configuration. This script comes with several options:
+To use this, you need to be in a directory which contains a devcontainer configuration. This script comes with several modes:
 
 ## Launching applications
 
@@ -35,9 +35,14 @@ To use this, you need to be in a directory which contains a devcontainer configu
 - `devc-nvim install` - This will install neovim in the container
 - `devc-nvim install-nightly` - This will install the nightly version of neovim in the container
 - `devc-nvim install-dependencies` or `devc-nvim install-deps` - This will install the dependencies for neovim in the container
-- `devc-nvim setup-all` - This will install neovim in the container, install the dependencies, and copy your local neovim configuration into the container
-- `devc-nvim setup-all-nightly` - This will install the nightly version of neovim in the container, install the dependencies, and copy your local neovim configuration into the container
+- `devc-nvim setup` - This will install neovim in the container, install the dependencies, and copy your local neovim configuration into the container
+- `devc-nvim setup-nightly` - This will install the nightly version of neovim in the container, install the dependencies, and copy your local neovim configuration into the container
 - `devc-nvim help` - This will display the help message, including the available commands
+
+## Options
+
+- `-i` or `--id` - Sets the container ID to use. This is useful if the container ID could not be determined automatically
+- `-p` or `--path` - Sets the path to the workspace root. This is useful if you're currently in a different directory, e.g. a child directory
 
 If no command is provided, the script will default to starting neovim in the container.
 
@@ -47,5 +52,5 @@ This script is very simple and does not handle any complex cases. Due to this, i
 
 # Known issues
 
-This script currently relies on the dev container CLI connecting to the container and the container reporting its container ID using its `hostname`. This is not a reliable way to get the container ID, and so this script may fail in some cases. An example of where this is the case if the container is linked to another container in a docker compose configuration using a `network_mode` of `service:container_name` or similar.
+This script currently relies on the dev container CLI connecting to the container and the container reporting its container ID using its `hostname`. This is not a reliable way to get the container ID, and so this script may fail in some cases. An example of where this is the case if the container is linked to another container in a docker compose configuration using a `network_mode` of `service:container_name` or similar. To get around this, you can specify the container ID using the `-i` option.
 
