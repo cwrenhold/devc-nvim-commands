@@ -10,7 +10,7 @@ if [[ $1 != "-"* && $1 != "--" && $1 != "" ]]; then
 fi
 
 help() {
-	HELP_TEXT=$(cat <<EOF
+    HELP_TEXT=$(cat <<EOF
 Usage: $(basename $0) [mode]
 
   Applications:
@@ -42,9 +42,9 @@ Usage: $(basename $0) [mode]
     $(basename $0) config -i 12345
       - Copy the neovim configuration to the container with the ID 12345
 EOF
-	)
+    )
 
-	echo -e "$HELP_TEXT"
+    echo -e "$HELP_TEXT"
 }
 
 # Define the options available in both forms
@@ -56,9 +56,9 @@ PARSED_OPTS=$(getopt -o $SHORT_OPTS --long $LONG_OPTS --name "$(basename $0)" --
 
 # If the options are invalid, exit with a message
 if [ $? -ne 0 ]; then
-	echo "Invalid options were provided"
-	help
-	exit 1
+    echo "Invalid options were provided"
+    help
+    exit 1
 fi
 
 # Set the parsed options into the current scope
@@ -69,32 +69,32 @@ DEVCONTAINER_ID=""
 
 # If there are any options, parse them
 if [ $# -gt 0 ]; then
-	while true; do
-		case "$1" in
-			-p|--path)
-				DEVCONTAINER_PATH=$2
-				shift 2
-				;;
-			-i|--id)
-				DEVCONTAINER_ID=$2
-				shift 2
-				;;
-			--)
-				shift
-				break
-				;;
-			*)
-				echo "Invalid option: $1"
-				help
-				exit 1
-				;;
-		esac
-	done
+    while true; do
+        case "$1" in
+            -p|--path)
+                DEVCONTAINER_PATH=$2
+                shift 2
+                ;;
+            -i|--id)
+                DEVCONTAINER_ID=$2
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Invalid option: $1"
+                help
+                exit 1
+                ;;
+        esac
+    done
 fi
 
 # If the ID is not set, then load it using the devcontainer command
 if [ -z "$DEVCONTAINER_ID" ]; then
-	DEVCONTAINER_ID=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH cat /etc/hostname)
+    DEVCONTAINER_ID=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH cat /etc/hostname)
 fi
 
 # Set up the standard variables
@@ -102,152 +102,152 @@ DEVCONTAINER_HOME=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh -
 
 # If any of the standard variables aren't set, exit with a message
 if [ -z "$DEVCONTAINER_ID" ] || [ -z "$DEVCONTAINER_HOME" ]; then
-	echo -e "\n--- Failed to get the devcontainer ID or home directory, please ensure you are in a directory with a devcontainer"
-	echo -e "--- Path: $DEVCONTAINER_PATH"
-	exit 1
+    echo -e "\n--- Failed to get the devcontainer ID or home directory, please ensure you are in a directory with a devcontainer"
+    echo -e "--- Path: $DEVCONTAINER_PATH"
+    exit 1
 fi
 
 start_nvim() {
-	devcontainer exec --workspace-folder $DEVCONTAINER_PATH /opt/nvim-linux64/bin/nvim .
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH /opt/nvim-linux64/bin/nvim .
 }
 
 start_shell() {
-	devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh
 }
 
 start_bash() {
-	devcontainer exec --workspace-folder $DEVCONTAINER_PATH bash
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH bash
 }
 
 show_info() {
-	echo -e "\n--- Devcontainer Information ---"
-	echo -e "--- Path: $DEVCONTAINER_PATH"
-	echo -e "--- ID:   $DEVCONTAINER_ID"
-	echo -e "--- Home: $DEVCONTAINER_HOME\n"
+    echo -e "\n--- Devcontainer Information ---"
+    echo -e "--- Path: $DEVCONTAINER_PATH"
+    echo -e "--- ID:   $DEVCONTAINER_ID"
+    echo -e "--- Home: $DEVCONTAINER_HOME\n"
 }
 
 clean_nvim() {
-	devcontainer exec --workspace-folder $DEVCONTAINER_PATH rm -rf $DEVCONTAINER_HOME/.config/nvim
-	echo -e "\n--- Removed the existing neovim configuration\n"
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH rm -rf $DEVCONTAINER_HOME/.config/nvim
+    echo -e "\n--- Removed the existing neovim configuration\n"
 }
 
 config_nvim() {
-	devcontainer exec --workspace-folder $DEVCONTAINER_PATH mkdir -p $DEVCONTAINER_HOME/.config
-	docker cp ~/.config/nvim $DEVCONTAINER_ID:$DEVCONTAINER_HOME/.config
-	echo -e "\n--- Copied the neovim configuration to the container\n"
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH mkdir -p $DEVCONTAINER_HOME/.config
+    docker cp ~/.config/nvim $DEVCONTAINER_ID:$DEVCONTAINER_HOME/.config
+    echo -e "\n--- Copied the neovim configuration to the container\n"
 }
 
 run_commands() {
-	# Create an array of commands to execute
-	commands=("$@")
+    # Create an array of commands to execute
+    commands=("$@")
 
-	# Build a commandString from the array with newlines
-	command_string=$(printf "%s\n" "${commands[@]}")
+    # Build a commandString from the array with newlines
+    command_string=$(printf "%s\n" "${commands[@]}")
 
-	# Execute the commands
-	devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh -c "$command_string"
+    # Execute the commands
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh -c "$command_string"
 }
 
 install() {
-	echo -e "\n--- Installing neovim\n"
+    echo -e "\n--- Installing neovim\n"
 
-	commands=(
-		"mkdir -p /tmp/nvim-install"
-		"cd /tmp/nvim-install"
-		"curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
-		"sudo rm -rf /opt/nvim"
-		"sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
-	)
+    commands=(
+        "mkdir -p /tmp/nvim-install"
+        "cd /tmp/nvim-install"
+        "curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+        "sudo rm -rf /opt/nvim"
+        "sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
+    )
 
-	run_commands "${commands[@]}"
+    run_commands "${commands[@]}"
 
-	echo -e "\n--- Installed neovim\n"
+    echo -e "\n--- Installed neovim\n"
 }
 
 install_nightly() {
-	echo -e "\n--- Installing neovim\n"
+    echo -e "\n--- Installing neovim\n"
 
-	commands=(
-		"mkdir -p /tmp/nvim-install"
-		"cd /tmp/nvim-install"
-		"curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz"
-		"sudo rm -rf /opt/nvim"
-		"sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
-	)
+    commands=(
+        "mkdir -p /tmp/nvim-install"
+        "cd /tmp/nvim-install"
+        "curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz"
+        "sudo rm -rf /opt/nvim"
+        "sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
+    )
 
-	run_commands "${commands[@]}"
+    run_commands "${commands[@]}"
 
-	echo -e "\n--- Installed neovim\n"
+    echo -e "\n--- Installed neovim\n"
 }
 
 install_dependencies() {
-	echo -e "\n--- Installing dependencies\n"
+    echo -e "\n--- Installing dependencies\n"
 
-	# List of packages to install with apt-get
-	packages=(
-		"curl"    # For downloading neovim
-		"ripgrep" # For fzf
-		"nodejs"  # For additional tooling (e.g. Copilot)
-	)
+    # List of packages to install with apt-get
+    packages=(
+        "curl"    # For downloading neovim
+        "ripgrep" # For fzf
+        "nodejs"  # For additional tooling (e.g. Copilot)
+    )
 
-	package_string=$(printf "%s " "${packages[@]}")
+    package_string=$(printf "%s " "${packages[@]}")
 
-	commands=(
-		"sudo apt-get update"
-		"sudo apt-get install -y $package_string"
-	)
+    commands=(
+        "sudo apt-get update"
+        "sudo apt-get install -y $package_string"
+    )
 
-	run_commands "${commands[@]}"
+    run_commands "${commands[@]}"
 
-	echo -e "\n--- Installed dependencies\n"
+    echo -e "\n--- Installed dependencies\n"
 }
 
 case $MODE in 
-	"nvim")
-		start_nvim
-		;;
-	"shell"|"sh")
-		start_shell
-		;;
-	"bash")
-		start_bash
-		;;
-	"clean")
-		clean_nvim
-		;;
-	"config")
-		config_nvim
-		;;
-	"info"|"show-info")
-		show_info
-		;;
-	"install")
-		install
-		;;
-	"install-nightly")
-		install_nightly
-		;;
-	"install-dependencies"|"install-deps")
-		install_dependencies
-		;;
-	"setup")
-		clean_nvim
-		install_dependencies
-		install
-		config_nvim
-		;;
-	"setup-nightly")
-		clean_nvim
-		install_dependencies
-		install_nightly
-		config_nvim
-		;;
-	"help")
-		help
-		;;
-	*)
-		echo "Invalid mode: $MODE"
-		help
-		;;
+    "nvim")
+        start_nvim
+        ;;
+    "shell"|"sh")
+        start_shell
+        ;;
+    "bash")
+        start_bash
+        ;;
+    "clean")
+        clean_nvim
+        ;;
+    "config")
+        config_nvim
+        ;;
+    "info"|"show-info")
+        show_info
+        ;;
+    "install")
+        install
+        ;;
+    "install-nightly")
+        install_nightly
+        ;;
+    "install-dependencies"|"install-deps")
+        install_dependencies
+        ;;
+    "setup")
+        clean_nvim
+        install_dependencies
+        install
+        config_nvim
+        ;;
+    "setup-nightly")
+        clean_nvim
+        install_dependencies
+        install_nightly
+        config_nvim
+        ;;
+    "help")
+        help
+        ;;
+    *)
+        echo "Invalid mode: $MODE"
+        help
+        ;;
 esac
 
