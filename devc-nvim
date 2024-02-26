@@ -108,7 +108,7 @@ if [ -z "$DEVCONTAINER_ID" ] || [ -z "$DEVCONTAINER_HOME" ]; then
 fi
 
 start_nvim() {
-    devcontainer exec --workspace-folder $DEVCONTAINER_PATH /opt/nvim-linux64/bin/nvim .
+    devcontainer exec --workspace-folder $DEVCONTAINER_PATH nvim .
 }
 
 start_shell() {
@@ -141,6 +141,13 @@ run_commands() {
     # Create an array of commands to execute
     commands=("$@")
 
+    echo -e "\n--- Running commands ---"
+    for command in "${commands[@]}"; do
+        echo "- $command"
+    done
+
+    echo -e "---\n"
+
     # Build a commandString from the array with newlines
     command_string=$(printf "%s\n" "${commands[@]}")
 
@@ -151,18 +158,21 @@ run_commands() {
 install() {
     echo -e "\n--- Installing neovim\n"
 
-    commands=(
-        # Create a temporary directory to download the neovim tarball
-        "mkdir -p /tmp/nvim-install"
-        "cd /tmp/nvim-install"
-        "curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
-        "sudo rm -rf /opt/nvim"
-        "sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
+    source_version="neovim-stable"
+    file_url="https://github.com/neovim/neovim/archive/refs/tags/stable.tar.gz"
+    get_command="curl -LO $file_url"
 
-        # Create a symlink to the neovim binary, replacing any existing symlink so that it can be run from a shell
-        "mkdir -p /usr/local/bin"
-        "sudo rm -f /usr/local/bin/nvim"
-        "sudo ln -s /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim"
+    echo "Downloading neovim from $file_url"
+
+    commands=(
+        # Create a temporary directory to download the neovim source tarball
+        "mkdir -p /tmp/nvim-src"
+        "cd /tmp/nvim-src"
+        "$get_command"
+        "sudo tar xzf stable.tar.gz -C /tmp/nvim-src"
+        "cd $source_version"
+        "sudo make CMAKE_BUILD_TYPE=Release"
+        "sudo make install"
     )
 
     run_commands "${commands[@]}"
@@ -173,18 +183,22 @@ install() {
 install_nightly() {
     echo -e "\n--- Installing neovim\n"
 
-    commands=(
-        # Create a temporary directory to download the neovim tarball
-        "mkdir -p /tmp/nvim-install"
-        "cd /tmp/nvim-install"
-        "curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz"
-        "sudo rm -rf /opt/nvim"
-        "sudo tar xzf /tmp/nvim-install/nvim-linux64.tar.gz -C /opt"
+    source_version="neovim-nightly"
+    file_url="https://github.com/neovim/neovim/archive/refs/tags/nightly.tar.gz"
+    get_command="curl -LO $file_url"
 
-        # Create a symlink to the neovim binary, replacing any existing symlink so that it can be run from a shell
-        "mkdir -p /usr/local/bin"
-        "sudo rm -f /usr/local/bin/nvim"
-        "sudo ln -s /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim"
+    echo "Downloading neovim from $file_url"
+
+    commands=(
+        # Create a temporary directory to download the neovim source tarball
+        "mkdir -p /tmp/nvim-src"
+        "cd /tmp/nvim-src"
+        "$get_command"
+        "sudo tar xzf nightly.tar.gz -C /tmp/nvim-src"
+        "ls -l"
+        "cd $source_version"
+        "sudo make CMAKE_BUILD_TYPE=Release"
+        "sudo make install"
     )
 
     run_commands "${commands[@]}"
@@ -200,6 +214,12 @@ install_dependencies() {
         "curl"    # For downloading neovim
         "ripgrep" # For fzf
         "nodejs"  # For additional tooling (e.g. Copilot)
+
+        # For building neovim
+        "cmake"
+        "ninja-build"
+        "gettext"
+        "unzip"
     )
 
     package_string=$(printf "%s " "${packages[@]}")
