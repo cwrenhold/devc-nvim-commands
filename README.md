@@ -27,6 +27,11 @@ To use this, you need to be in a directory which contains a devcontainer configu
 - `devc-nvim shell` or `devc-nvim sh` - This will start up a shell in the container from the workspace root
 - `devc-nvim bash` - This will start up a bash shell in the container from the workspace root
 
+## Container Management
+
+- `devc-nvim up` - This starts the container (including any applicable compose) is required
+- `devc-nvim destroy` - This stops and removes the container
+
 ## Other commands
 
 - `devc-nvim clean` - This will remove any existing neovim configuration in the container
