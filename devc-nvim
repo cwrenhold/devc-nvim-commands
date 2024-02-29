@@ -17,6 +17,9 @@ Usage: $(basename $0) [mode]
     nvim: Start neovim inside the container
     shell or sh: Start a shell inside the container
     bash: Start a bash shell inside the container
+  Container Management:
+    up: Start the dev container (including compose if applicable)
+    destroy: Stops the container and removes it
   Commands:
     clean: Remove the existing neovim configuration
     config: Copy the neovim configuration to the container
@@ -234,6 +237,23 @@ install_dependencies() {
     echo -e "\n--- Installed dependencies\n"
 }
 
+devcontainer_up() {
+    echo -e "\n--- Starting the dev container\n"
+
+    commands=(
+        "devcontainer up --workspace-folder $DEVCONTAINER_PATH"
+    )
+}
+
+devcontainer_destroy() {
+    echo -e "\n--- Destroying the container: $DEVCONTAINER_ID\n"
+
+    commands=(
+        "docker stop $DEVCONTAINER_ID"
+        "docker rm $DEVCONTAINER_ID"
+    )
+}
+
 case $MODE in 
     "nvim")
         start_nvim
@@ -273,6 +293,12 @@ case $MODE in
         install_dependencies
         install_nightly
         config_nvim
+        ;;
+    "up")
+        devcontainer_up
+        ;;
+    "destroy")
+        devcontainer_destroy
         ;;
     "help")
         help
