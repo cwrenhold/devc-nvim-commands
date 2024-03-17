@@ -10,6 +10,13 @@ To use this script, you will need to have the following:
 - [Docker](https://www.docker.com/)
 - [devcontainercli](https://github.com/devcontainers/cli)
 
+## Dev container dependencies
+
+Due to how this script works, you will need to have the following installed in your dev container:
+
+- `apt`
+- `sudo`
+
 # Setup
 
 To use this script, you will need to have the `devc-nvim` script in your path. You can do this by adding the directory containing the script to your path, or by copying the script to a directory which is already in your path. For example, you could clone this repository and then add that directory to your path, and then either copy the `devc-nvim` script to `/usr/local/bin` or create a symlink to it from there.
@@ -30,6 +37,7 @@ To use this, you need to be in a directory which contains a devcontainer configu
 ## Container Management
 
 - `devc-nvim up` - This starts the container (including any applicable compose) is required
+- `devc-nvim build` - This builds the container
 - `devc-nvim destroy` - This stops and removes the container
 
 ## Other commands

@@ -20,6 +20,7 @@ Usage: $(basename $0) [mode]
   Container Management:
     up: Start the dev container (including compose if applicable)
     destroy: Stops the container and removes it
+    build: Build the dev container
   Commands:
     clean: Remove the existing neovim configuration
     config: Copy the neovim configuration to the container
@@ -69,6 +70,7 @@ eval set -- "$PARSED_OPTS"
 
 DEVCONTAINER_PATH="./"
 DEVCONTAINER_ID=""
+DEVCONTAINER_HOME=""
 
 # If there are any options, parse them
 if [ $# -gt 0 ]; then
@@ -95,19 +97,25 @@ if [ $# -gt 0 ]; then
     done
 fi
 
-# If the ID is not set, then load it using the devcontainer command
-if [ -z "$DEVCONTAINER_ID" ]; then
-    DEVCONTAINER_ID=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH cat /etc/hostname)
-fi
+# Some modes don't require the container to be running
+DOES_NOT_REQUIRE_RUNNING_CONTAINER=("up" "build")
 
-# Set up the standard variables
-DEVCONTAINER_HOME=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh -c 'echo $HOME')
+# If the mode doesn't require the container to be running, then we don't need to check the container ID
+if [[ ! " ${DOES_NOT_REQUIRE_RUNNING_CONTAINER[@]} " =~ " ${MODE} " ]]; then
+    # If the container ID is not set, then load it using the devcontainer command
+    if [ -z "$DEVCONTAINER_ID" ]; then
+        DEVCONTAINER_ID=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH cat /etc/hostname)
+    fi
 
-# If any of the standard variables aren't set, exit with a message
-if [ -z "$DEVCONTAINER_ID" ] || [ -z "$DEVCONTAINER_HOME" ]; then
-    echo -e "\n--- Failed to get the devcontainer ID or home directory, please ensure you are in a directory with a devcontainer"
-    echo -e "--- Path: $DEVCONTAINER_PATH"
-    exit 1
+    # Set up the standard variables
+    DEVCONTAINER_HOME=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh -c 'echo $HOME')
+
+    # If any of the standard variables aren't set, exit with a message
+    if [ -z "$DEVCONTAINER_ID" ] || [ -z "$DEVCONTAINER_HOME" ]; then
+        echo -e "\n--- Failed to get the devcontainer ID or home directory, please ensure you are in a directory with a devcontainer"
+        echo -e "--- Path: $DEVCONTAINER_PATH"
+        exit 1
+    fi
 fi
 
 start_nvim() {
@@ -140,11 +148,11 @@ config_nvim() {
     echo -e "\n--- Copied the neovim configuration to the container\n"
 }
 
-run_commands() {
+run_commands_in_container() {
     # Create an array of commands to execute
     commands=("$@")
 
-    echo -e "\n--- Running commands ---"
+    echo -e "\n--- Running commands in dev container ---"
     for command in "${commands[@]}"; do
         echo "- $command"
     done
@@ -178,7 +186,7 @@ install() {
         "sudo make install"
     )
 
-    run_commands "${commands[@]}"
+    run_commands_in_container "${commands[@]}"
 
     echo -e "\n--- Installed neovim\n"
 }
@@ -204,7 +212,7 @@ install_nightly() {
         "sudo make install"
     )
 
-    run_commands "${commands[@]}"
+    run_commands_in_container "${commands[@]}"
 
     echo -e "\n--- Installed neovim\n"
 }
@@ -214,7 +222,7 @@ install_dependencies() {
 
     # List of packages to install with apt-get
     packages=(
-        "curl"    # For downloading neovim
+        "curl"    # For downloading neovim and rust
         "ripgrep" # For fzf
         "nodejs"  # For additional tooling (e.g. Copilot)
 
@@ -230,9 +238,11 @@ install_dependencies() {
     commands=(
         "sudo apt-get update"
         "sudo apt-get install -y $package_string"
+        # Install rust in the container
+        "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
     )
 
-    run_commands "${commands[@]}"
+    run_commands_in_container "${commands[@]}"
 
     echo -e "\n--- Installed dependencies\n"
 }
@@ -240,18 +250,26 @@ install_dependencies() {
 devcontainer_up() {
     echo -e "\n--- Starting the dev container\n"
 
-    commands=(
-        "devcontainer up --workspace-folder $DEVCONTAINER_PATH"
-    )
+    devcontainer up --workspace-folder $DEVCONTAINER_PATH
+
+    echo -e "\n--- Started the dev container\n"
+}
+
+devcontainer_build() {
+    echo -e "\n--- Building the dev container\n"
+
+    devcontainer build --workspace-folder $DEVCONTAINER_PATH
+
+    echo -e "\n--- Built the dev container\n"
 }
 
 devcontainer_destroy() {
     echo -e "\n--- Destroying the container: $DEVCONTAINER_ID\n"
 
-    commands=(
-        "docker stop $DEVCONTAINER_ID"
-        "docker rm $DEVCONTAINER_ID"
-    )
+    docker stop $DEVCONTAINER_ID
+    docker rm $DEVCONTAINER_ID
+
+    echo -e "\n--- Destroyed the container: $DEVCONTAINER_ID\n"
 }
 
 case $MODE in 
@@ -296,6 +314,9 @@ case $MODE in
         ;;
     "up")
         devcontainer_up
+        ;;
+    "build")
+        devcontainer_build
         ;;
     "destroy")
         devcontainer_destroy
