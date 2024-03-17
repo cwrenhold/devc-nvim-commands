@@ -98,7 +98,7 @@ if [ $# -gt 0 ]; then
 fi
 
 # Some modes don't require the container to be running
-DOES_NOT_REQUIRE_RUNNING_CONTAINER=("up" "build")
+DOES_NOT_REQUIRE_RUNNING_CONTAINER=("up" "build" "help")
 
 # If the mode doesn't require the container to be running, then we don't need to check the container ID
 if [[ ! " ${DOES_NOT_REQUIRE_RUNNING_CONTAINER[@]} " =~ " ${MODE} " ]]; then
