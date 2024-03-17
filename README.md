@@ -15,7 +15,6 @@ To use this script, you will need to have the following:
 Due to how this script works, you will need to have the following installed in your dev container:
 
 - `apt`
-- `sudo`
 
 # Setup
 

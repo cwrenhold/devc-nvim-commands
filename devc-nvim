@@ -176,14 +176,16 @@ install() {
     echo "Downloading neovim from $file_url"
 
     commands=(
+        # Store reference to sudo if that exists
+        "sudo=\$(command -v sudo)"
         # Create a temporary directory to download the neovim source tarball
         "mkdir -p /tmp/nvim-src"
         "cd /tmp/nvim-src"
         "$get_command"
-        "sudo tar xzf stable.tar.gz -C /tmp/nvim-src"
+        "\$sudo tar xzf stable.tar.gz -C /tmp/nvim-src"
         "cd $source_version"
-        "sudo make CMAKE_BUILD_TYPE=Release"
-        "sudo make install"
+        "\$sudo make CMAKE_BUILD_TYPE=Release"
+        "\$sudo make install"
     )
 
     run_commands_in_container "${commands[@]}"
@@ -201,15 +203,16 @@ install_nightly() {
     echo "Downloading neovim from $file_url"
 
     commands=(
+        # Store reference to sudo if that exists
+        "sudo=\$(command -v sudo)"
         # Create a temporary directory to download the neovim source tarball
         "mkdir -p /tmp/nvim-src"
         "cd /tmp/nvim-src"
         "$get_command"
-        "sudo tar xzf nightly.tar.gz -C /tmp/nvim-src"
-        "ls -l"
+        "\$sudo tar xzf nightly.tar.gz -C /tmp/nvim-src"
         "cd $source_version"
-        "sudo make CMAKE_BUILD_TYPE=Release"
-        "sudo make install"
+        "\$sudo make CMAKE_BUILD_TYPE=Release"
+        "\$sudo make install"
     )
 
     run_commands_in_container "${commands[@]}"
@@ -236,8 +239,10 @@ install_dependencies() {
     package_string=$(printf "%s " "${packages[@]}")
 
     commands=(
-        "sudo apt-get update"
-        "sudo apt-get install -y $package_string"
+        # Store reference to sudo if that exists
+        "sudo=\$(command -v sudo)"
+        "\$sudo apt-get update"
+        "\$sudo apt-get install -y $package_string"
         # Install rust in the container
         "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
     )
