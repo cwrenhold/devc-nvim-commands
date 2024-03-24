@@ -19,7 +19,8 @@ Usage: $(basename $0) [mode]
     bash: Start a bash shell inside the container
   Container Management:
     up: Start the dev container (including compose if applicable)
-    destroy: Stops the container and removes it
+    stop: Stops the dev container (including associated containers if applicable)
+    destroy: Stops the container and removes it (excluding any other containers in the compose file)
     build: Build the dev container
   Commands:
     clean: Remove the existing neovim configuration
@@ -35,7 +36,7 @@ Usage: $(basename $0) [mode]
   Options:
     -p or --path: The path to the devcontainer (default: ./)
     -i or --id: The ID of the devcontainer (default: auto-detected)
-    
+
   Examples:
     $(basename $0)
       - Start neovim inside the default container
@@ -260,6 +261,46 @@ devcontainer_up() {
     echo -e "\n--- Started the dev container\n"
 }
 
+devcontainer_stop() {
+    echo -e "\n--- Stopping the containers associated with: $DEVCONTAINER_ID\n"
+
+    # First, check if the devcontainer has a com.docker.compose.project label
+    SEARCH_KEY="com.docker.compose.project"
+
+    # Find the project name for the devcontainer
+    SEARCH_VALUE=$(docker inspect -f '{{ index .Config.Labels "'"$SEARCH_KEY"'" }}' "$DEVCONTAINER_ID")
+
+    # If the project name is found, then stop all containers associated with the project
+    if [ -n "$SEARCH_VALUE" ]; then
+        FULL_CONTAINER_LIST=$(docker ps -q --filter label="$SEARCH_KEY=$SEARCH_VALUE")
+    else
+        # If the project name is not found, then stop all containers with the same devcontainer.config_file label
+        SEARCH_KEY="devcontainer.config_file"
+
+        # Find the config file for the devcontainer
+        SEARCH_VALUE=$(docker inspect -f '{{ index .Config.Labels "'"$SEARCH_KEY"'" }}' "$DEVCONTAINER_ID")
+
+        FULL_CONTAINER_LIST=$(docker ps -q --filter label="$SEARCH_KEY=$SEARCH_VALUE")
+    fi
+
+    # Get a count of the containers
+    CONTAINER_COUNT=$(echo $FULL_CONTAINER_LIST | wc -w)
+
+    if [ $CONTAINER_COUNT -eq 0 ]; then
+        echo -e "\n--- No containers found associated with: $SEARCH_VALUE with key: $SEARCH_KEY\n"
+        return
+    fi
+
+    echo -e "\n--- Found $CONTAINER_COUNT container(s) associated with: $SEARCH_VALUE\n"
+
+    for container_id in $FULL_CONTAINER_LIST; do
+        echo "Stopping container: $container_id"
+        docker stop $container_id
+    done
+
+    echo -e "\n--- Stopped the containers associated with: $SEARCH_VALUE\n"
+}
+
 devcontainer_build() {
     echo -e "\n--- Building the dev container\n"
 
@@ -277,7 +318,7 @@ devcontainer_destroy() {
     echo -e "\n--- Destroyed the container: $DEVCONTAINER_ID\n"
 }
 
-case $MODE in 
+case $MODE in
     "nvim")
         start_nvim
         ;;
@@ -319,6 +360,9 @@ case $MODE in
         ;;
     "up")
         devcontainer_up
+        ;;
+    "stop")
+        devcontainer_stop
         ;;
     "build")
         devcontainer_build

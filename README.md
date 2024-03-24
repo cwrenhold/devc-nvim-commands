@@ -35,7 +35,8 @@ To use this, you need to be in a directory which contains a devcontainer configu
 
 ## Container Management
 
-- `devc-nvim up` - This starts the container (including any applicable compose) is required
+- `devc-nvim up` - This starts the container (including any applicable compose if required)
+- `devc-nvim stop` - This stops the dev container (including any associated containers)
 - `devc-nvim build` - This builds the container
 - `devc-nvim destroy` - This stops and removes the container
 
