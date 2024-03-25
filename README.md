@@ -35,6 +35,8 @@ To use this, you need to be in a directory which contains a devcontainer configu
 
 ## Container Management
 
+- `devc-nvim status` - This will display the status of the container, including any associated containers
+- `devc-nvim status-all` - This displays the status of all containers associated with the dev container, including stopped containers
 - `devc-nvim up` - This starts the container (including any applicable compose if required)
 - `devc-nvim stop` - This stops the dev container (including any associated containers)
 - `devc-nvim build` - This builds the container

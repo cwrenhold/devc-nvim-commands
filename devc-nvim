@@ -18,6 +18,8 @@ Usage: $(basename $0) [mode]
     shell or sh: Start a shell inside the container
     bash: Start a bash shell inside the container
   Container Management:
+    status: Display the status of the dev container and associated containers
+    status-all: Display the status of all containers associated with the dev container, including stopped containers
     up: Start the dev container (including compose if applicable)
     stop: Stops the dev container (including associated containers if applicable)
     destroy: Stops the container and removes it (excluding any other containers in the compose file)
@@ -261,20 +263,18 @@ devcontainer_up() {
     echo -e "\n--- Started the dev container\n"
 }
 
-devcontainer_stop() {
-    echo -e "\n--- Stopping the containers associated with: $DEVCONTAINER_ID\n"
-
+get_associated_containers() {
     # First, check if the devcontainer has a com.docker.compose.project label
     SEARCH_KEY="com.docker.compose.project"
 
     # Find the project name for the devcontainer
     SEARCH_VALUE=$(docker inspect -f '{{ index .Config.Labels "'"$SEARCH_KEY"'" }}' "$DEVCONTAINER_ID")
 
-    # If the project name is found, then stop all containers associated with the project
+    # If the project name is found, then get all containers associated with the project
     if [ -n "$SEARCH_VALUE" ]; then
         FULL_CONTAINER_LIST=$(docker ps -q --filter label="$SEARCH_KEY=$SEARCH_VALUE")
     else
-        # If the project name is not found, then stop all containers with the same devcontainer.config_file label
+        # If the project name is not found, then get all containers with the same devcontainer.config_file label
         SEARCH_KEY="devcontainer.config_file"
 
         # Find the config file for the devcontainer
@@ -282,6 +282,24 @@ devcontainer_stop() {
 
         FULL_CONTAINER_LIST=$(docker ps -q --filter label="$SEARCH_KEY=$SEARCH_VALUE")
     fi
+}
+
+devcontainer_container_status() {
+    get_associated_containers
+
+    docker ps --filter label="$SEARCH_KEY=$SEARCH_VALUE"
+}
+
+devcontainer_container_status_all() {
+    get_associated_containers
+
+    docker ps --filter label="$SEARCH_KEY=$SEARCH_VALUE" -a
+}
+
+devcontainer_stop() {
+    echo -e "\n--- Stopping the containers associated with: $DEVCONTAINER_ID\n"
+
+    get_associated_containers
 
     # Get a count of the containers
     CONTAINER_COUNT=$(echo $FULL_CONTAINER_LIST | wc -w)
@@ -360,6 +378,12 @@ case $MODE in
         ;;
     "up")
         devcontainer_up
+        ;;
+    "status")
+        devcontainer_container_status
+        ;;
+    "status-all")
+        devcontainer_container_status_all
         ;;
     "stop")
         devcontainer_stop
