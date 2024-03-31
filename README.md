@@ -47,8 +47,10 @@ To use this, you need to be in a directory which contains a devcontainer configu
 - `devc-nvim clean` - This will remove any existing neovim configuration in the container
 - `devc-nvim config` - This will copy your local neovim configuration into the container
 - `devc-nvim info` or `devc-nvim show-info` - This will display information about the container
-- `devc-nvim install` - This will install neovim in the container
-- `devc-nvim install-nightly` - This will install the nightly version of neovim in the container
+- `devc-nvim install-binary` - This will install neovim in the container using the binary
+- `devc-nvim install-source` - This will install the stable version of neovim in the container using the source
+- `devc-nvim install-nightly-binary` - This will install the nightly version of neovim in the container using the binary
+- `devc-nvim install-nightly-source` - This will install the nightly version of neovim in the container using the source
 - `devc-nvim install-dependencies` or `devc-nvim install-deps` - This will install the dependencies for neovim in the container
 - `devc-nvim setup` - This will install neovim in the container, install the dependencies, and copy your local neovim configuration into the container
 - `devc-nvim setup-nightly` - This will install the nightly version of neovim in the container, install the dependencies, and copy your local neovim configuration into the container

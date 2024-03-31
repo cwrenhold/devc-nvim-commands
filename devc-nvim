@@ -28,8 +28,10 @@ Usage: $(basename $0) [mode]
     clean: Remove the existing neovim configuration
     config: Copy the neovim configuration to the container
     info or show-info: Display information about the devcontainer
-    install: Install the latest stable version of neovim
-    install-nightly: Install the latest nightly version of neovim
+    install-source: Install the latest stable version of neovim from source
+    install-binary: Install the latest stable version of neovim from a binary
+    install-nightly-source: Install the latest nightly version of neovim from source
+    install-nightly-binary: Install the latest nightly version of neovim from a binary
     install-dependencies or install-deps: Install the dependencies for neovim
     setup: Sets up neovim from scratch, running through clean, install, and setup
     setup-nightly: Sets up neovim from scratch with a nightly installation, running through clean, install-nightly, and setup
@@ -169,7 +171,7 @@ run_commands_in_container() {
     devcontainer exec --workspace-folder $DEVCONTAINER_PATH sh -c "$command_string"
 }
 
-install() {
+install_source() {
     echo -e "\n--- Installing neovim\n"
 
     source_version="neovim-stable"
@@ -196,7 +198,7 @@ install() {
     echo -e "\n--- Installed neovim\n"
 }
 
-install_nightly() {
+install_source_nightly() {
     echo -e "\n--- Installing neovim\n"
 
     source_version="neovim-nightly"
@@ -223,6 +225,80 @@ install_nightly() {
     echo -e "\n--- Installed neovim\n"
 }
 
+determine_nvim_binary_version() {
+    architecure=$(uname -m)
+    operating_system=$(uname -s)
+
+    if [ "$operating_system" == "Linux" ]; then
+        if [ "$architecure" == "x86_64" ]; then
+            source_version="linux64"
+        else
+            echo "Unsupported architecture: $architecure"
+        fi
+    elif [ "$operating_system" == "Darwin" ]; then
+        if [ "$architecure" == "x86_64" ]; then
+            source_version="macos-x86_64"
+        else
+            source_version="macos-arm64"
+        fi
+    else
+        echo "Unsupported operating system: $operating_system"
+        exit 1
+    fi
+}
+
+install_binary() {
+    echo -e "\n--- Installing neovim\n"
+
+    determine_nvim_binary_version
+
+    file_url="https://github.com/neovim/neovim/releases/download/stable/nvim-$source_version.tar.gz"
+    get_command="curl -LO $file_url"
+
+    echo "Downloading neovim from $file_url"
+
+    commands=(
+        # Store reference to sudo if that exists
+        "sudo=\$(command -v sudo)"
+        # Create a temporary directory to download the neovim binary tarball
+        "mkdir -p /tmp/nvim-binary"
+        "cd /tmp/nvim-binary"
+        "$get_command"
+        "\$sudo tar xzf nvim-$source_version.tar.gz -C /tmp/nvim-binary"
+        "\$sudo ln -sf /tmp/nvim-binary/nvim-$source_version/bin/nvim /usr/local/bin/nvim"
+    )
+
+    run_commands_in_container "${commands[@]}"
+
+    echo -e "\n--- Installed neovim\n"
+}
+
+install_nightly_binary() {
+    echo -e "\n--- Installing neovim\n"
+
+    determine_nvim_binary_version
+
+    file_url="https://github.com/neovim/neovim/releases/download/nightly/nvim-$source_version.tar.gz"
+    get_command="curl -LO $file_url"
+
+    echo "Downloading neovim from $file_url"
+
+    commands=(
+        # Store reference to sudo if that exists
+        "sudo=\$(command -v sudo)"
+        # Create a temporary directory to download the neovim binary tarball
+        "mkdir -p /tmp/nvim-binary"
+        "cd /tmp/nvim-binary"
+        "$get_command"
+        "\$sudo tar xzf nvim-$source_version.tar.gz -C /tmp/nvim-binary"
+        "\$sudo ln -sf /tmp/nvim-binary/nvim-$source_version/bin/nvim /usr/local/bin/nvim"
+    )
+
+    run_commands_in_container "${commands[@]}"
+
+    echo -e "\n--- Installed neovim\n"
+}
+
 install_dependencies() {
     echo -e "\n--- Installing dependencies\n"
 
@@ -231,12 +307,6 @@ install_dependencies() {
         "curl"    # For downloading neovim and rust
         "ripgrep" # For fzf
         "nodejs"  # For additional tooling (e.g. Copilot)
-
-        # For building neovim
-        "cmake"
-        "ninja-build"
-        "gettext"
-        "unzip"
     )
 
     package_string=$(printf "%s " "${packages[@]}")
@@ -253,6 +323,31 @@ install_dependencies() {
     run_commands_in_container "${commands[@]}"
 
     echo -e "\n--- Installed dependencies\n"
+}
+
+install_build_dependencies() {
+    echo -e "\n--- Installing build dependencies\n"
+
+    # List of packages to install with apt-get
+    packages=(
+        "cmake"
+        "ninja-build"
+        "gettext"
+        "unzip"
+    )
+
+    package_string=$(printf "%s " "${packages[@]}")
+
+    commands=(
+        # Store reference to sudo if that exists
+        "sudo=\$(command -v sudo)"
+        "\$sudo apt-get update"
+        "\$sudo apt-get install -y $package_string"
+    )
+
+    run_commands_in_container "${commands[@]}"
+
+    echo -e "\n--- Installed build dependencies\n"
 }
 
 devcontainer_up() {
@@ -355,11 +450,19 @@ case $MODE in
     "info"|"show-info")
         show_info
         ;;
-    "install")
-        install
+    "install-source")
+        install_build_dependencies
+        install_source
         ;;
-    "install-nightly")
-        install_nightly
+    "install-nightly-source")
+        install_build_dependencies
+        install_source_nightly
+        ;;
+    "install-binary")
+        install_binary
+        ;;
+    "install-nightly-binary")
+        install_nightly_binary
         ;;
     "install-dependencies"|"install-deps")
         install_dependencies
@@ -367,13 +470,13 @@ case $MODE in
     "setup")
         clean_nvim
         install_dependencies
-        install
+        install_binary
         config_nvim
         ;;
     "setup-nightly")
         clean_nvim
         install_dependencies
-        install_nightly
+        install_nightly_binary
         config_nvim
         ;;
     "up")
