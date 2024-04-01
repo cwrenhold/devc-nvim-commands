@@ -228,12 +228,13 @@ install_source_nightly() {
 determine_nvim_binary_version() {
     architecure=$(uname -m)
     operating_system=$(uname -s)
+    requires_install_from_source=false
 
     if [ "$operating_system" == "Linux" ]; then
         if [ "$architecure" == "x86_64" ]; then
             source_version="linux64"
         else
-            echo "Unsupported architecture: $architecure"
+            requires_install_from_source=true
         fi
     elif [ "$operating_system" == "Darwin" ]; then
         if [ "$architecure" == "x86_64" ]; then
@@ -242,8 +243,7 @@ determine_nvim_binary_version() {
             source_version="macos-arm64"
         fi
     else
-        echo "Unsupported operating system: $operating_system"
-        exit 1
+        requires_install_from_source=true
     fi
 }
 
@@ -251,6 +251,14 @@ install_binary() {
     echo -e "\n--- Installing neovim\n"
 
     determine_nvim_binary_version
+
+    if [ "$requires_install_from_source" = true ]; then
+        echo -e "\n--- Unsupported system ($operating_system $architecure) for binary installation, installing from source\n"
+
+        install_build_dependencies
+        install_source
+        return
+    fi
 
     file_url="https://github.com/neovim/neovim/releases/download/stable/nvim-$source_version.tar.gz"
     get_command="curl -LO $file_url"
@@ -277,6 +285,14 @@ install_nightly_binary() {
     echo -e "\n--- Installing neovim\n"
 
     determine_nvim_binary_version
+
+    if [ "$requires_install_from_source" = true ]; then
+        echo -e "\n--- Unsupported system ($operating_system $architecure) for binary installation, installing from source\n"
+
+        install_build_dependencies
+        install_source_nightly
+        return
+    fi
 
     file_url="https://github.com/neovim/neovim/releases/download/nightly/nvim-$source_version.tar.gz"
     get_command="curl -LO $file_url"
