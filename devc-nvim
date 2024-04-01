@@ -226,8 +226,8 @@ install_source_nightly() {
 }
 
 determine_nvim_binary_version() {
-    architecure=$(uname -m)
-    operating_system=$(uname -s)
+    architecure=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH uname -m)
+    operating_system=$(devcontainer exec --workspace-folder $DEVCONTAINER_PATH uname -s)
     requires_install_from_source=false
 
     if [ "$operating_system" == "Linux" ]; then
