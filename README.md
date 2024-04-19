@@ -54,6 +54,7 @@ To use this, you need to be in a directory which contains a devcontainer configu
 - `devc-nvim install-dependencies` or `devc-nvim install-deps` - This will install the dependencies for neovim in the container
 - `devc-nvim setup` - This will install neovim in the container, install the dependencies, and copy your local neovim configuration into the container
 - `devc-nvim setup-nightly` - This will install the nightly version of neovim in the container, install the dependencies, and copy your local neovim configuration into the container
+- `devc-nvim scaffold` - This will create a new devcontainer configuration in the current directory, with a basic Dockerfile
 - `devc-nvim help` - This will display the help message, including the available commands
 
 ## Options

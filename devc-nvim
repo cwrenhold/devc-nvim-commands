@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Set the default mode
 MODE="nvim"
@@ -35,6 +35,7 @@ Usage: $(basename $0) [mode]
     install-dependencies or install-deps: Install the dependencies for neovim
     setup: Sets up neovim from scratch, running through clean, install, and setup
     setup-nightly: Sets up neovim from scratch with a nightly installation, running through clean, install-nightly, and setup
+    scaffold: Scaffold a new devcontainer configuration using a Dockerfile
     help: Display this help message
 
   Options:
@@ -103,7 +104,7 @@ if [ $# -gt 0 ]; then
 fi
 
 # Some modes don't require the container to be running
-DOES_NOT_REQUIRE_RUNNING_CONTAINER=("up" "build" "help")
+DOES_NOT_REQUIRE_RUNNING_CONTAINER=("up" "build" "help" "scaffold")
 
 # If the mode doesn't require the container to be running, then we don't need to check the container ID
 if [[ ! " ${DOES_NOT_REQUIRE_RUNNING_CONTAINER[@]} " =~ " ${MODE} " ]]; then
@@ -447,6 +448,42 @@ devcontainer_destroy() {
     echo -e "\n--- Destroyed the container: $DEVCONTAINER_ID\n"
 }
 
+devcontainer_scaffold() {
+    # Create a devcontainer directory
+    mkdir -p .devcontainer
+
+    # Check if there is already a devcontainer configuration json or Dockerfile exists
+    if [ -f .devcontainer/devcontainer.json ] || [ -f .devcontainer/Dockerfile ]; then
+        echo -e "\n--- A devcontainer configuration already exists\n"
+        return
+    fi
+
+    # Create a devcontainer.json file
+    echo -e "\n--- Scaffolding a new devcontainer configuration\n"
+
+    # Default the project name to the name of the current directory
+    PROJECT_NAME=$(basename $(pwd))
+    cat <<EOF > .devcontainer/devcontainer.json
+{
+    "name": "$PROJECT_NAME Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "."
+    }
+}
+EOF
+
+    # Create a Dockerfile if one doesn't exist
+    echo -e "\n--- Scaffolding a new devcontainer Dockerfile\n"
+
+    base_image="mcr.microsoft.com/devcontainers/base:bullseye"
+    cat <<EOF > .devcontainer/Dockerfile
+FROM $base_image
+EOF
+
+    echo -e "\n--- Scaffolding complete\n"
+}
+
 case $MODE in
     "nvim")
         start_nvim
@@ -512,6 +549,9 @@ case $MODE in
         ;;
     "destroy")
         devcontainer_destroy
+        ;;
+    "scaffold")
+        devcontainer_scaffold
         ;;
     "help")
         help
