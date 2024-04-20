@@ -36,6 +36,7 @@ Usage: $(basename $0) [mode]
     setup: Sets up neovim from scratch, running through clean, install, and setup
     setup-nightly: Sets up neovim from scratch with a nightly installation, running through clean, install-nightly, and setup
     scaffold: Scaffold a new devcontainer configuration using a Dockerfile
+    scaffold-compose: Scaffold a new devcontainer configuration using a docker-compose file
     help: Display this help message
 
   Options:
@@ -104,7 +105,13 @@ if [ $# -gt 0 ]; then
 fi
 
 # Some modes don't require the container to be running
-DOES_NOT_REQUIRE_RUNNING_CONTAINER=("up" "build" "help" "scaffold")
+DOES_NOT_REQUIRE_RUNNING_CONTAINER=(
+    "up"
+    "build"
+    "scaffold"
+    "scaffold-compose"
+    "help"
+)
 
 # If the mode doesn't require the container to be running, then we don't need to check the container ID
 if [[ ! " ${DOES_NOT_REQUIRE_RUNNING_CONTAINER[@]} " =~ " ${MODE} " ]]; then
@@ -448,24 +455,55 @@ devcontainer_destroy() {
     echo -e "\n--- Destroyed the container: $DEVCONTAINER_ID\n"
 }
 
-devcontainer_scaffold() {
-    # Create a devcontainer directory
-    mkdir -p .devcontainer
+devcontainer_scaffold_settings() {
+    # Prompt the user for the project name, default to the current directory name
+    project_name=$(basename $(pwd))
 
-    # Check if there is already a devcontainer configuration json or Dockerfile exists
-    if [ -f .devcontainer/devcontainer.json ] || [ -f .devcontainer/Dockerfile ]; then
+    project_name="$project_name Dev Container"
+
+    read -p "Enter the project name (default: $project_name): " user_project_name
+
+    if [ -n "$user_project_name" ]; then
+        project_name=$user_project_name
+    fi
+
+
+    # Prompt the user for the base image, default to the devcontainers base image
+    base_image="mcr.microsoft.com/devcontainers/base:bullseye"
+    read -p "Enter the base image for the devcontainer (default: $base_image): " user_base_image
+
+    if [ -n "$user_base_image" ]; then
+        base_image=$user_base_image
+    fi
+}
+
+devcontainer_scaffold_dockerfile() {
+    # Create a Dockerfile if one doesn't exist
+    echo -e "\n--- Scaffolding a new devcontainer Dockerfile\n"
+
+    cat <<EOF > .devcontainer/Dockerfile
+FROM $base_image
+EOF
+}
+
+devcontainer_scaffold() {
+    # Check if a devcontainer directory already exists
+    if [ -d .devcontainer ]; then
         echo -e "\n--- A devcontainer configuration already exists\n"
         return
     fi
 
+    # Create a devcontainer directory
+    mkdir -p .devcontainer
+
     # Create a devcontainer.json file
     echo -e "\n--- Scaffolding a new devcontainer configuration\n"
 
-    # Default the project name to the name of the current directory
-    PROJECT_NAME=$(basename $(pwd))
+    devcontainer_scaffold_settings
+
     cat <<EOF > .devcontainer/devcontainer.json
 {
-    "name": "$PROJECT_NAME Dev Container",
+    "name": "$project_name",
     "build": {
         "dockerfile": "Dockerfile",
         "context": "."
@@ -473,13 +511,52 @@ devcontainer_scaffold() {
 }
 EOF
 
-    # Create a Dockerfile if one doesn't exist
-    echo -e "\n--- Scaffolding a new devcontainer Dockerfile\n"
+    devcontainer_scaffold_dockerfile
 
-    base_image="mcr.microsoft.com/devcontainers/base:bullseye"
-    cat <<EOF > .devcontainer/Dockerfile
-FROM $base_image
+    echo -e "\n--- Scaffolding complete\n"
+}
+
+devcontainer_scaffold_compose() {
+    # Check if a devcontainer directory already exists
+    if [ -d .devcontainer ]; then
+        echo -e "\n--- A devcontainer configuration already exists\n"
+        return
+    fi
+
+    # Create a devcontainer directory
+    mkdir -p .devcontainer
+
+    # Create a devcontainer.json file
+    echo -e "\n--- Scaffolding a new devcontainer configuration\n"
+
+    devcontainer_scaffold_settings
+
+    cat <<EOF > .devcontainer/devcontainer.json
+{
+    "name": "$project_name",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspaces/\${localWorkspaceFolderBasename}"
+}
 EOF
+
+    # Create a docker-compose file
+    echo -e "\n--- Scaffolding a new docker-compose configuration\n"
+
+    cat <<EOF > .devcontainer/docker-compose.yml
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+          - ../..:/workspaces:cached
+        command: sleep infinity
+EOF
+
+    devcontainer_scaffold_dockerfile
 
     echo -e "\n--- Scaffolding complete\n"
 }
@@ -552,6 +629,9 @@ case $MODE in
         ;;
     "scaffold")
         devcontainer_scaffold
+        ;;
+    "scaffold-compose")
+        devcontainer_scaffold_compose
         ;;
     "help")
         help
