@@ -470,6 +470,8 @@ devcontainer_scaffold_settings() {
 
     # Prompt the user for the base image, default to the devcontainers base image
     base_image="mcr.microsoft.com/devcontainers/base:bullseye"
+    image_url="https://hub.docker.com/_/microsoft-vscode-devcontainers"
+    echo -e "\nA base image can be specified as a starting point for your dev container, see $image_url for some official images"
     read -p "Enter the base image for the devcontainer (default: $base_image): " user_base_image
 
     if [ -n "$user_base_image" ]; then
